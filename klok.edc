@@ -9,11 +9,16 @@ collections {
                 new Float:second;
 
                 date(year, month, day, yearday, weekday, hour, minute, second);
-                // Callback every 5 minutes
-                timer(60 * (4 - (minute % 5)) + 60.0 - second, "clock_cb", 1);
+
+                timer(60.0 - second, "clock_cb", 1);
 #define SHUTOFF(_name)                                       \
                 set_state(PART:"on_"_name,  "hidden",  0.0); \
                 set_state(PART:"off_"_name, "default", 0.0)
+
+                SHUTOFF("topleft");
+                SHUTOFF("topright");
+                SHUTOFF("bottomleft");
+                SHUTOFF("bottomright");
 
                 SHUTOFF("l0.0");
                 SHUTOFF("l1.0");
@@ -131,12 +136,14 @@ collections {
                 set_state(PART:"off_"_name, "hidden",  0.0); \
                 set_state(PART:"on_"_name,  "default",  0.0)
 
+                // IT IS
                 SHUTON("l0.0");
                 SHUTON("l1.0");
                 SHUTON("l3.0");
                 SHUTON("l4.0");
+
+                // OCLOCK
                 if (0 <= minute && minute < 5) {
-                    // OCLOCK
                     SHUTON("l5.9");
                     SHUTON("l6.9");
                     SHUTON("l7.9");
@@ -144,6 +151,21 @@ collections {
                     SHUTON("l9.9");
                     SHUTON("la.9");
                 }
+
+                // MINUTES
+                if ((minute % 5) >= 1) {
+                    SHUTON("topleft");
+                }
+                if ((minute % 5) >= 2) {
+                    SHUTON("topright");
+                }
+                if ((minute % 5) >= 3) {
+                    SHUTON("bottomleft");
+                }
+                if ((minute % 5) >= 4) {
+                    SHUTON("bottomright");
+                }
+
                 if ((5 <= minute && minute < 10)
                 ||  (25 <= minute && minute < 30)
                 ||  (35 <= minute && minute < 40)
@@ -368,10 +390,12 @@ collections {
                     align: 0.5 0.5;
                     aspect: 1.0 1.0;
                     aspect_preference: BOTH;
+                    rel1.relative: 0.08 0.08;
+                    rel2.relative: 0.92 0.92;
                 }
             }
 
-            #define LETTER(_name, _x0, _y0, _x1, _y1, _letter)  \
+            #define SYMBOL(_name, _x0, _y0, _x1, _y1, _off, _on, _rel) \
             part {                                              \
                 name: "off_"_name;                              \
                 type: TEXT;                                     \
@@ -383,11 +407,11 @@ collections {
                     step: 10 11;                                \
                     rel1 {                                      \
                         relative: _x0 _y0;                      \
-                        to: "bg.square";                        \
+                        to: _rel;                               \
                     }                                           \
                     rel2 {                                      \
                         relative: _x1 _y1;                      \
-                        to: "bg.square";                        \
+                        to: _rel;                               \
                     }                                           \
                     text {                                      \
                         font: "Sans:style=Mono";                \
@@ -395,7 +419,7 @@ collections {
                         min: 1 1;                               \
                         fit: 0 1;                               \
                         align: 0.5 0.5;                         \
-                        text:  _letter;                         \
+                        text:  _off;                            \
                         text_class: "klok_letter";              \
                     }                                           \
                 }                                               \
@@ -417,11 +441,11 @@ collections {
                     step: 10 11;                                \
                     rel1 {                                      \
                         relative: _x0 _y0;                      \
-                        to: "bg.square";                        \
+                        to: _rel;                               \
                     }                                           \
                     rel2 {                                      \
                         relative: _x1 _y1;                      \
-                        to: "bg.square";                        \
+                        to: _rel;                               \
                     }                                           \
                     text {                                      \
                         font: "Sans:style=Mono";                \
@@ -429,7 +453,7 @@ collections {
                         min: 1 1;                               \
                         fit: 0 1;                               \
                         align: 0.5 0.5;                         \
-                        text:  _letter;                         \
+                        text:  _on;                             \
                         text_class: "klok_letter";              \
                     }                                           \
                 }                                               \
@@ -439,6 +463,18 @@ collections {
                     visible: 0;                                 \
                 }                                               \
             }
+
+            #define DOT(_name, _x0, _y0, _x1, _y1)  \
+                SYMBOL(_name, _x0, _y0, _x1, _y1, "○", "●", "bg")
+
+            // MINUTES INDICATION
+            DOT("topleft", 0.03, 0.03, 0.07, 0.07)
+            DOT("topright", 0.93, 0.03, 0.97, 0.07)
+            DOT("bottomleft", 0.03, 0.93, 0.07, 0.97)
+            DOT("bottomright", 0.93, 0.93, 0.97, 0.97)
+
+            #define LETTER(_name, _x0, _y0, _x1, _y1, _letter) \
+                SYMBOL(_name, _x0, _y0, _x1, _y1, _letter, _letter, "bg.square")
 
             LETTER("l0.0", 0,     0,   0.091, 0.1, "I")
             LETTER("l1.0", 0.091, 0,   0.182, 0.1, "T")
